@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, BackgroundTasks, HTTPException
-from app.llm_agent import review_diff_with_gpt4
-from app.review_parser import parse_review_comments
+from app.llm_agent import review_diff_with_hf 
+from app.review_parser import parse_review_comments 
 from app.github import post_review_comments
 import os
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ def process_pr(repo_full_name: str, pr_number: int):
     title, diff = get_pr_diff(client, repo_full_name, pr_number)
 
     # Gets raw review text from GPT
-    review_text = review_diff_with_gpt4(diff)
+    review_text = review_diff_with_hf(diff)
 
     # Parse that into structured comments
     comments, summary = parse_review_comments(review_text)
@@ -28,7 +28,7 @@ def process_pr(repo_full_name: str, pr_number: int):
     print(f"[BG] Diff preview:\n{diff[:200]}…")
 
     try:
-        review = review_diff_with_gpt4(diff)
+        review = review_diff_with_hf(diff)
         print(f"[BG] 🤖 AI Review for PR #{pr_number}:\n{review}")
     except Exception as e:
         print(f"[BG] Error calling LLM: {e}")
