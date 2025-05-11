@@ -26,9 +26,12 @@ def post_review_comments(client, repo_full_name: str, pr_number: int, comments: 
     repo = client.get_repo(repo_full_name)
     pr = repo.get_pull(pr_number)
 
+    is_author = (pr.user.login == client.get_user().login)
+    event_type = "COMMENT" if is_author else "REQUEST_CHANGES"
+
     pr.create_review(
         body = summary,
-        event = "REQUEST_CHANGES",
+        event = event_type,
         comments = [
             {
                 "path": c["path"],
