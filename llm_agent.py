@@ -5,36 +5,33 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+token=os.getenv("HF_API_TOKEN"),
 
 client = InferenceClient(
-    token=os.getenv("HF_API_TOKEN"),
-    model="meta-llama/Llama-3-8b-instruct",
-    timeout=120,  # Longer timeout for bigger model
+    model="mistralai/Mistral-7B-v0.1",
+    token=token,
+    timeout=120,
 )
 
-
 def review_diff_with_hf(diff: str) -> str:
-    prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-    You are an expert software engineer reviewing a GitHub pull request.
-    Analyze this diff and provide:
-    1. A concise summary of changes
-    2. Specific, actionable feedback with file:line references
-    3. Security/code quality suggestions
-    Format using Markdown<|eot_id|>
-    <|start_header_id|>user<|end_header_id|>
-    Diff:
-    {diff}<|eot_id|>
-    <|start_header_id|>assistant<|end_header_id|>"""
+    system_prompt = (
+        "SYSTEM: You are an expert software engineer reviewing a GitHub pull request.\n"
+        "Analyze this diff and provide:\n"
+        "1. A concise summary of changes\n"
+        "2. Actionable comments with file:line references\n"
+        "3. Security and code-quality suggestions\n\n"
+        "USER: Here is the diff:\n"
+        f"{diff}\n\n"
+        "ASSISTANT:"
+    )
     
     try:
-        # Single-positional-arg interface: prompt first, then generation kwargs
         result = client.text_generation(
-            prompt,
+            system_prompt,
             max_new_tokens=1024,
-            temperature=0.1,
-            repetition_penalty=1.2,
+            temperature=0.1
         )
-        # `result` is a list of GeneratedText objects
+        # result is a list of GeneratedText
         return result[0].generated_text.strip()
 
     except Exception as e:
